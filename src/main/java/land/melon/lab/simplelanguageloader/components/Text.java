@@ -2,6 +2,7 @@ package land.melon.lab.simplelanguageloader.components;
 
 import com.google.gson.*;
 import land.melon.lab.simplelanguageloader.utils.ColorConverter;
+import land.melon.lab.simplelanguageloader.utils.Pair;
 
 import java.lang.reflect.Type;
 
@@ -27,6 +28,15 @@ public class Text {
 
     public String colored() {
         return textColored;
+    }
+
+    @SafeVarargs
+    public final String produce(Pair<String, Object>... pairs) {
+        var result = colored();
+        for (var pair : pairs) {
+            result = result.replace("{" + pair.key() + "}", pair.value().toString());
+        }
+        return result;
     }
 
     private static class TextSerializer implements JsonSerializer<Text>, JsonDeserializer<Text> {
