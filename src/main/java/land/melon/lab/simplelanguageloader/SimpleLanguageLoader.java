@@ -4,7 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import land.melon.lab.simplelanguageloader.components.Text;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class SimpleLanguageLoader {
     private final Gson gson;
@@ -22,7 +25,7 @@ public class SimpleLanguageLoader {
     }
 
     public <T> T loadLanguageFile(File languageFile, Class<T> type) throws IOException {
-        languageFile.createNewFile();
+        IGNORE_RESULT(languageFile.createNewFile());
         return gson.fromJson(new FileReader(languageFile), type);
     }
 
@@ -31,6 +34,10 @@ public class SimpleLanguageLoader {
         var writer = new FileWriter(languageFile);
         writer.write(jsonString);
         writer.close();
+    }
+
+    private void IGNORE_RESULT(Object o) {
+        //ignored
     }
 
 }

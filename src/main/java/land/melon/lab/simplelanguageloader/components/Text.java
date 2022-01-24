@@ -51,7 +51,7 @@ public final class Text {
         textOriginal.add(originalString);
         var expanded = ColorConverter.convertConvenientColorCode(originalString);
         textExpanded.add(expanded);
-        textColored.add(expanded.replace("&", "§").replace("§§", "&"));
+        textColored.add(expanded.replace('&', '§').replace("§§", "&"));
     }
 
     public List<String> originalAsList() {
@@ -59,9 +59,7 @@ public final class Text {
     }
 
     public String original() {
-        StringBuilder texts = new StringBuilder();
-        originalAsList().forEach(text -> texts.append(text).append("\n"));
-        return texts.toString();
+        return String.join("\n", originalAsList());
     }
 
     public List<String> expandedAsList() {
@@ -69,9 +67,7 @@ public final class Text {
     }
 
     public String expanded() {
-        StringBuilder texts = new StringBuilder();
-        expandedAsList().forEach(text -> texts.append(text).append("\n"));
-        return texts.toString();
+        return String.join("\n", expandedAsList());
     }
 
     public List<String> coloredAsList() {
@@ -79,9 +75,7 @@ public final class Text {
     }
 
     public String colored() {
-        StringBuilder texts = new StringBuilder();
-        coloredAsList().forEach(text -> texts.append(text).append("\n"));
-        return texts.toString();
+        return String.join("\n", coloredAsList());
     }
 
     @SafeVarargs
@@ -97,11 +91,7 @@ public final class Text {
 
     @SafeVarargs
     public final String produce(Pair<String, Object>... pairs) {
-        StringBuilder texts = new StringBuilder();
-        for (var text : textColored) {
-            texts.append(text).append("\n");
-        }
-        var result = texts.toString();
+        var result = colored();
         for (var pair : pairs) {
             result = result.replace("{" + pair.key() + "}", pair.value().toString());
         }
