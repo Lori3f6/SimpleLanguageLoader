@@ -38,4 +38,11 @@
         </dependency>
     </dependencies>
 
+    <distributionManagement>
+        <repository>
+            <id>local-dist</id>
+            <!--suppress UnresolvedMavenProperty -->
+            <url>file://${mavenLocalDistDir}</url>
+        </repository>
+    </distributionManagement>
 </project>
