@@ -36,6 +36,7 @@ public class SimpleLanguageLoader {
         writer.close();
     }
 
+    @SuppressWarnings("unused")
     private void IGNORE_RESULT(Object o) {
         //ignored
     }
