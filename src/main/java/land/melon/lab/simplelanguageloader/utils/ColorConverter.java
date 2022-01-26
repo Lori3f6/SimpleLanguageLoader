@@ -4,9 +4,24 @@ package land.melon.lab.simplelanguageloader.utils;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
-public class ColorConverter {
-    static Pattern hexColorPattern = Pattern.compile("[&][#][0-9A-Fa-f]{6}");
+/**
+ * Used to process color codes.
+ */
+public final class ColorConverter {
+    /**
+     * hex color pattern looks like <code>&amp;#RRGGBB</code>
+     */
+    static final Pattern hexColorPattern = Pattern.compile("[&][#][0-9A-Fa-f]{6}");
 
+    private ColorConverter() {
+    }
+
+    /**
+     * Replace the convenient RGB color code with expanded color code in a string.
+     *
+     * @param text text to be proceeded
+     * @return text with expanded color code
+     */
     public static String convertConvenientColorCode(String text) {
         var textParts = hexColorPattern.split(text);
         var colorCodes = hexColorPattern.matcher(text).results().map(MatchResult::group).toArray(String[]::new);
@@ -17,6 +32,12 @@ public class ColorConverter {
         return textBuilder.toString();
     }
 
+    /**
+     * Expand color code looks like <code>&amp;#RRGGBB</code> to <code>&amp;x&amp;R&amp;R&amp;G&amp;G&amp;B&amp;B</code>.
+     *
+     * @param x convenient color code
+     * @return expanded color code
+     */
     private static String convertToTraditionalColorCode(String x) {
         var hexColorCode = x.substring(2);
         var colorCodeBuilder = new StringBuilder("&x");

@@ -11,7 +11,69 @@ import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
+/**
+ * Language component that represents a text, which help you to create single or multi line customizable text with basic and RGB color code, format code, custom placeholders and Spigot BaseComponents support.
+ *
+ * <p>Text integrates both minecraft classic color/format codes and RGB color codes support.</p>
+ * <p>You could use ampersand sign(&amp;) to select colors.</p>
+ * <p>For example:</p>
+ * <pre>
+ *     var coloredText = Text.of(
+ *          "&amp;cRoses are red,",
+ *          "&amp;#66ccffViolets are blue.",
+ *          "&amp;fSugar is sweet,",
+ *          "&amp;#c75f78And so are you."
+ *     );
+ * </pre>
+ * <p>Format codes are also available:</p>
+ * <pre>
+ *     var textFormatted = Text.of(
+ *     "&amp;oTo be, or not to be, "
+ *     "&amp;nthat is &amp;lthe&amp;r&amp;n question."
+ *     );
+ * </pre>
+ *
+ * <p>You could create custom placeholders, and use it as below:</p>
+ * <pre>
+ *     var textWithPlaceholders = Text.of(
+ *          "Roses are red,",
+ *          "{blueThings} are blue,",
+ *          "{thirdSentence}"
+ *     );
+ *
+ *     //assume that there is a bukkit Player assigned to variable player
+ *     player.sendMessage(textWithPlaceholders.produce(
+ *          Pair.of("blueThings", "The Smurfs"),
+ *          Pair.of("thirdSentence", "Unexpected '{' on line 32.")
+ *     ));
+ *     // Roses are red, The Smurfs are blue, Unexpected '{' on line 32.
+ * </pre>
+ *
+ * <p>You could also use BaseComponents to customize the content of placeholders advanced:</p>
+ * <pre>
+ *     var textWithPlaceholders = Text.of(
+ *          "Roses are red,",
+ *          "The Smurfs are blue,",
+ *          "{thirdSentence}"
+ *     );
+ *
+ *     var myBaseComponent = new TextComponent("My customized BaseComponent looks pretty cool.");
+ *     //set the properties
+ *     myBaseComponent.set...;
+ *     myBaseComponent.add...;
+ *     //assume that there is a bukkit Player assigned to variable player
+ *     player.spigot().sendMessage(textWithPlaceholders.produceWithBaseComponentsAsArray(
+ *          Pair.of("thirdSentence", myBaseComponent)
+ *     ));
+ *     // Roses are red,
+ *     // The Smurfs are blue,
+ *     // My customized BaseComponent looks pretty cool.(with properties)
+ * </pre>
+ */
 public final class Text {
+    /**
+     * The serializer/deserializer for gson to process class Text.
+     */
     public static final TextSerializer gsonSerializer = new TextSerializer();
     private static final Pattern placeholderPattern = Pattern.compile("\\{\\w*}");
     private final List<String> textOriginal;
@@ -20,6 +82,11 @@ public final class Text {
     private final List<List<BaseComponent>> textComponents;
     private final Map<String, List<Pair<Integer, Integer>>> placeHolderLocMap = new HashMap<>();
 
+    /**
+     * Create a new Text component with the given text.
+     *
+     * @param texts the texts to be used
+     */
     public Text(String... texts) {
         textOriginal = new ArrayList<>(texts.length);
         textExpanded = new ArrayList<>(texts.length);
@@ -28,6 +95,10 @@ public final class Text {
         Arrays.stream(texts).forEach(this::addTextLine);
     }
 
+    /**
+     * Create Text from {@link JsonElement}
+     * @param jsonElement jsonElement used to deserialize to Text
+     */
     private Text(JsonElement jsonElement) {
         int arraySize;
         if (jsonElement.isJsonPrimitive()) {
@@ -50,6 +121,13 @@ public final class Text {
         }
     }
 
+    /**
+     * Create a new Text component with the given text.
+     * <p>Shorthand for {@link #Text(String...)}</p>
+     *
+     * @param texts the text to be used
+     * @return new Text instance
+     */
     public static Text of(String... texts) {
         return new Text(texts);
     }
@@ -80,30 +158,66 @@ public final class Text {
         textComponents.add(line);
     }
 
+    /**
+     * Get the original text (which used to create Text instance) as a List, each element is a single line.
+     *
+     * @return original texts
+     */
     public List<String> originalAsList() {
         return textOriginal;
     }
 
+    /**
+     * Get the original text (which used to create Text instance), joint to one string.
+     *
+     * @return the original texts
+     */
     public String original() {
         return String.join("\n", originalAsList());
     }
 
+    /**
+     * Get the expanded text (which expands the color code in patterns looks like <code>&amp;#66ccff</code> to classic form <code>&amp;x&amp;6&amp;6&amp;c&amp;c&amp;f&amp;f</code>), each element is a single line.
+     *
+     * @return the expanded texts
+     */
     public List<String> expandedAsList() {
         return textExpanded;
     }
 
+    /**
+     * Get the expanded text (which expands the color code in patterns looks like <code>&amp;#66ccff</code> to classic form <code>&amp;x&amp;6&amp;6&amp;c&amp;c&amp;f&amp;f</code>), joint to one string.
+     *
+     * @return the expanded texts
+     */
     public String expanded() {
         return String.join("\n", expandedAsList());
     }
 
+    /**
+     * Get the colored text (which replaces ampersand sign(&amp;) to section sign(§)), each element is a single line.
+     *
+     * @return the colored texts
+     */
     public List<String> coloredAsList() {
         return textColored;
     }
 
+    /**
+     * Get the colored text (which replaces ampersand sign(&amp;) to section sign(§)), joint to one string.
+     *
+     * @return the colored texts
+     */
     public String colored() {
         return String.join("\n", coloredAsList());
     }
 
+    /**
+     * Get the text replaced placeholders, each element is a single line.
+     *
+     * @param pairs the pairs of placeholder and its value
+     * @return the texts replaced placeholders
+     */
     @SafeVarargs
     public final List<String> produceAsList(Pair<String, Object>... pairs) {
         List<String> result = new ArrayList<>(textColored.size());
@@ -115,6 +229,12 @@ public final class Text {
         return result;
     }
 
+    /**
+     * Get the text replaced placeholders, joint to one string.
+     *
+     * @param pairs the pairs of placeholder and its value
+     * @return the texts replaced placeholders
+     */
     @SafeVarargs
     public final List<BaseComponent> produceWithBaseComponentsAsList(Pair<String, Object>... pairs) {
         List<BaseComponent> result = new ArrayList<>(textComponents.size());
@@ -148,12 +268,24 @@ public final class Text {
         return result;
     }
 
+    /**
+     * Get the text replaced placeholders(with BaseComponent) as a BaseComponent Array, each element is a single line.
+     *
+     * @param pairs the pairs of placeholder and its value
+     * @return the texts replaced placeholders
+     */
     @SafeVarargs
     public final BaseComponent[] produceWithBaseComponentsAsArray(Pair<String, Object>... pairs) {
         var array = new BaseComponent[textComponents.size()];
         return produceWithBaseComponentsAsList(pairs).toArray(array);
     }
 
+    /**
+     * Get the text replaced placeholders as a BaseComponent.
+     *
+     * @param pairs the pairs of placeholder and its value
+     * @return the text replaced placeholders with BaseComponent
+     */
     @SafeVarargs
     public final BaseComponent produceWithBaseComponents(Pair<String, Object>... pairs) {
         var componentsList = produceWithBaseComponentsAsList(pairs);
@@ -166,6 +298,12 @@ public final class Text {
     }
 
 
+    /**
+     * Get the text replaced placeholders, joint to one string.
+     *
+     * @param pairs the pairs of placeholder and its value
+     * @return the texts replaced placeholders
+     */
     @SafeVarargs
     public final String produce(Pair<String, Object>... pairs) {
         var result = colored();
@@ -175,6 +313,12 @@ public final class Text {
         return result;
     }
 
+    /**
+     * Get the text replaced placeholders, joint to one string.
+     * <p>Equals to {@link #colored()}</p>
+     *
+     * @return the texts replaced placeholders
+     */
     @Override
     public String toString() {
         return colored();
