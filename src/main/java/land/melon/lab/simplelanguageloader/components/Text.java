@@ -79,8 +79,8 @@ public final class Text {
     private final List<String> textOriginal;
     private final List<String> textExpanded;
     private final List<String> textColored;
-    private final List<List<BaseComponent>> textComponents;
-    private final Map<String, List<Pair<Integer, Integer>>> placeHolderLocMap = new HashMap<>();
+    private final List<List<BaseComponent>> componentLines;
+    private final Map<String, List<Pair<Integer, Integer>>> placeHolderCordsMap = new HashMap<>();
 
     /**
      * Create a new Text component with the given text.
@@ -91,7 +91,7 @@ public final class Text {
         textOriginal = new ArrayList<>(texts.length);
         textExpanded = new ArrayList<>(texts.length);
         textColored = new ArrayList<>(texts.length);
-        textComponents = new ArrayList<>(texts.length);
+        componentLines = new ArrayList<>(texts.length);
         Arrays.stream(texts).forEach(this::addTextLine);
     }
 
@@ -112,7 +112,7 @@ public final class Text {
         textOriginal = new ArrayList<>(arraySize);
         textExpanded = new ArrayList<>(arraySize);
         textColored = new ArrayList<>(arraySize);
-        textComponents = new ArrayList<>(arraySize);
+        componentLines = new ArrayList<>(arraySize);
 
         if (jsonElement.isJsonPrimitive()) {
             addTextLine(jsonElement.getAsString());
@@ -139,23 +139,25 @@ public final class Text {
         var colored = expanded.replace('&', '§').replace("§§", "&");
         textColored.add(colored);
 
-        var line = new ArrayList<BaseComponent>();
-        var texts = placeholderPattern.split(colored);
-        var placeholders = placeholderPattern.matcher(colored).results().map(MatchResult::group).toArray(String[]::new);
-        if (texts.length > 1) {
-            line.add(new TextComponent(texts[0]));
-            for (int i = 1; i < texts.length; i++) {
-                var placeholderString = placeholders[i - 1].substring(1, placeholders[i - 1].length() - 1);
-                line.add(new TextComponent(placeholderString));
-                line.add(new TextComponent(texts[i]));
-                var placeHolderLocations = placeHolderLocMap.getOrDefault(placeholderString, new ArrayList<>());
-                placeHolderLocations.add(new Pair<>(textComponents.size(), i * 2 - 1));
-                placeHolderLocMap.put(placeholderString, placeHolderLocations);
+        var componentsInLine = new ArrayList<BaseComponent>();
+        var textsInLine = placeholderPattern.split(colored);
+        var placeholdersInLine = placeholderPattern.matcher(colored).results().map(MatchResult::group).toArray(String[]::new);
+        if (placeholdersInLine.length > 0) {
+            for (int i = 0; i < placeholdersInLine.length; i++) {
+                componentsInLine.add(createBaseComponent(textsInLine[i]));
+                componentsInLine.add(createBaseComponent(placeholdersInLine[i]));
+                var placeholderString = placeholdersInLine[i].substring(1, placeholdersInLine[i].length() - 1);
+                var placeholderCords = placeHolderCordsMap.getOrDefault(placeholderString, new ArrayList<>());
+                placeholderCords.add(new Pair<>(componentLines.size(), i * 2 + 1));
+                placeHolderCordsMap.put(placeholderString, placeholderCords);
+            }
+            if (textsInLine.length > placeholdersInLine.length) {
+                componentsInLine.add(createBaseComponent(textsInLine[textsInLine.length - 1]));
             }
         } else {
-            line.add(new TextComponent(colored));
+            componentsInLine.add(createBaseComponent(colored));
         }
-        textComponents.add(line);
+        componentLines.add(componentsInLine);
     }
 
     /**
@@ -237,31 +239,28 @@ public final class Text {
      */
     @SafeVarargs
     public final List<BaseComponent> produceWithBaseComponentsAsList(Pair<String, Object>... pairs) {
-        List<BaseComponent> result = new ArrayList<>(textComponents.size());
-        var unReplaced = new ArrayList<>(textComponents);
+        List<BaseComponent> result = new ArrayList<>(componentLines.size());
         for (var pair : pairs) {
-            if (!placeHolderLocMap.containsKey(pair.key())) {
+            if (!placeHolderCordsMap.containsKey(pair.key())) {
                 continue;
             }
-            var placeHolderLocations = placeHolderLocMap.get(pair.key());
-            for (var placeHolderLocation : placeHolderLocations) {
-                var line = unReplaced.get(placeHolderLocation.key());
+            var placeHolderCords = placeHolderCordsMap.get(pair.key());
+            for (var cords : placeHolderCords) {
+                var line = componentLines.get(cords.key());
                 if (pair.value() instanceof BaseComponent) {
-                    line.set(placeHolderLocation.value(), (BaseComponent) pair.value());
+                    line.set(cords.value(), (BaseComponent) pair.value());
                 } else {
-                    line.set(placeHolderLocation.value(), new TextComponent(pair.value().toString()));
+                    var component = createBaseComponent(pair.value().toString());
+                    component.setColor(null);
+                    line.set(cords.value(), component);
                 }
             }
         }
 
-        for (var line : unReplaced) {
-            BaseComponent baseComponent = null;
-            for (var component : line) {
-                if (baseComponent == null) {
-                    baseComponent = component;
-                } else {
-                    baseComponent.addExtra(component);
-                }
+        for (var line : componentLines) {
+            BaseComponent baseComponent = createBaseComponent("");
+            for (BaseComponent component : line) {
+                baseComponent.addExtra(component);
             }
             result.add(baseComponent);
         }
@@ -276,8 +275,13 @@ public final class Text {
      */
     @SafeVarargs
     public final BaseComponent[] produceWithBaseComponentsAsArray(Pair<String, Object>... pairs) {
-        var array = new BaseComponent[textComponents.size()];
-        return produceWithBaseComponentsAsList(pairs).toArray(array);
+        var array = new BaseComponent[componentLines.size()];
+        produceWithBaseComponentsAsList(pairs).toArray(array);
+
+        for (int i = 0; i < array.length - 1; i++) {
+            array[i].addExtra("\n");
+        }
+        return array;
     }
 
     /**
@@ -344,5 +348,16 @@ public final class Text {
         public Text deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             return new Text(jsonElement);
         }
+    }
+
+    private BaseComponent createBaseComponent(String text) {
+        var components = TextComponent.fromLegacyText(text);
+        var result = components[0];
+        if(components.length > 1) {
+            for(int i = 1; i < components.length; i++) {
+                result.addExtra(components[i]);
+            }
+        }
+        return result;
     }
 }
