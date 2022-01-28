@@ -79,8 +79,8 @@ public final class Text {
     private final List<String> textOriginal;
     private final List<String> textExpanded;
     private final List<String> textColored;
-    private final List<List<BaseComponent>> componentLines;
-    private final Map<String, List<Pair<Integer, Integer>>> placeHolderCordsMap = new HashMap<>();
+    private final BaseComponent componentLines = new TextComponent("");
+    private final Map<String, List<Integer>> placeHolderMap = new HashMap<>();
 
     /**
      * Create a new Text component with the given text.
@@ -91,7 +91,6 @@ public final class Text {
         textOriginal = new ArrayList<>(texts.length);
         textExpanded = new ArrayList<>(texts.length);
         textColored = new ArrayList<>(texts.length);
-        componentLines = new ArrayList<>(texts.length);
         Arrays.stream(texts).forEach(this::addTextLine);
     }
 
@@ -112,7 +111,6 @@ public final class Text {
         textOriginal = new ArrayList<>(arraySize);
         textExpanded = new ArrayList<>(arraySize);
         textColored = new ArrayList<>(arraySize);
-        componentLines = new ArrayList<>(arraySize);
 
         if (jsonElement.isJsonPrimitive()) {
             addTextLine(jsonElement.getAsString());
@@ -139,25 +137,40 @@ public final class Text {
         var colored = expanded.replace('&', '§').replace("§§", "&");
         textColored.add(colored);
 
-        var componentsInLine = new ArrayList<BaseComponent>();
+        if (componentLines.getExtra() != null) {
+            componentLines.addExtra(new TextComponent("\n"));
+        }
         var textsInLine = placeholderPattern.split(colored);
         var placeholdersInLine = placeholderPattern.matcher(colored).results().map(MatchResult::group).toArray(String[]::new);
         if (placeholdersInLine.length > 0) {
             for (int i = 0; i < placeholdersInLine.length; i++) {
-                componentsInLine.add(createBaseComponent(textsInLine[i]));
-                componentsInLine.add(createBaseComponent(placeholdersInLine[i]));
+                var text = TextComponent.fromLegacyText(textsInLine[i]);
+                if (!textsInLine[i].startsWith("§")) {
+                    text[0].copyFormatting(componentLines.getExtra().get(componentLines.getExtra().size() - 1));
+                }
+                Arrays.stream(text).forEach(componentLines::addExtra);
+
+                var placeholder = new TextComponent(placeholdersInLine[i]);
+                placeholder.copyFormatting(componentLines.getExtra().get(componentLines.getExtra().size() - 1));
+                componentLines.addExtra(placeholder);
+
                 var placeholderString = placeholdersInLine[i].substring(1, placeholdersInLine[i].length() - 1);
-                var placeholderCords = placeHolderCordsMap.getOrDefault(placeholderString, new ArrayList<>());
-                placeholderCords.add(new Pair<>(componentLines.size(), i * 2 + 1));
-                placeHolderCordsMap.put(placeholderString, placeholderCords);
+                if (!placeHolderMap.containsKey(placeholderString)) {
+                    placeHolderMap.put(placeholderString, new ArrayList<>());
+                }
+                var indexList = placeHolderMap.get(placeholderString);
+                indexList.add(componentLines.getExtra().size() - 1);
             }
             if (textsInLine.length > placeholdersInLine.length) {
-                componentsInLine.add(createBaseComponent(textsInLine[textsInLine.length - 1]));
+                var componentPart = TextComponent.fromLegacyText(textsInLine[placeholdersInLine.length]);
+                if (!textsInLine[placeholdersInLine.length].startsWith("§")) {
+                    componentPart[0].copyFormatting(componentLines.getExtra().get(componentLines.getExtra().size() - 1));
+                }
+                Arrays.stream(componentPart).forEach(componentLines::addExtra);
             }
         } else {
-            componentsInLine.add(createBaseComponent(colored));
+            Arrays.stream(TextComponent.fromLegacyText(colored)).forEach(componentLines::addExtra);
         }
-        componentLines.add(componentsInLine);
     }
 
     /**
@@ -238,69 +251,24 @@ public final class Text {
      * @return the texts replaced placeholders
      */
     @SafeVarargs
-    public final List<BaseComponent> produceWithBaseComponentsAsList(Pair<String, Object>... pairs) {
-        List<BaseComponent> result = new ArrayList<>(componentLines.size());
+    public final BaseComponent produceWithBaseComponent(Pair<String, Object>... pairs) {
         for (var pair : pairs) {
-            if (!placeHolderCordsMap.containsKey(pair.key())) {
+            if (!placeHolderMap.containsKey(pair.key())) {
                 continue;
             }
-            var placeHolderCords = placeHolderCordsMap.get(pair.key());
-            for (var cords : placeHolderCords) {
-                var line = componentLines.get(cords.key());
+            var placeholder = placeHolderMap.get(pair.key());
+            for (var index : placeholder) {
                 if (pair.value() instanceof BaseComponent) {
-                    line.set(cords.value(), (BaseComponent) pair.value());
+                    componentLines.getExtra().set(index, (BaseComponent) pair.value());
                 } else {
-                    var component = createBaseComponent(pair.value().toString());
-                    component.setColor(null);
-                    line.set(cords.value(), component);
+                    var component = new TextComponent(TextComponent.fromLegacyText(pair.value().toString()));
+                    component.copyFormatting(componentLines.getExtra().get(index));
+                    componentLines.getExtra().set(index, component);
                 }
             }
         }
-
-        for (var line : componentLines) {
-            BaseComponent baseComponent = createBaseComponent("");
-            for (BaseComponent component : line) {
-                baseComponent.addExtra(component);
-            }
-            result.add(baseComponent);
-        }
-        return result;
+        return componentLines.duplicate();
     }
-
-    /**
-     * Get the text replaced placeholders(with BaseComponent) as a BaseComponent Array, each element is a single line.
-     *
-     * @param pairs the pairs of placeholder and its value
-     * @return the texts replaced placeholders
-     */
-    @SafeVarargs
-    public final BaseComponent[] produceWithBaseComponentsAsArray(Pair<String, Object>... pairs) {
-        var array = new BaseComponent[componentLines.size()];
-        produceWithBaseComponentsAsList(pairs).toArray(array);
-
-        for (int i = 0; i < array.length - 1; i++) {
-            array[i].addExtra("\n");
-        }
-        return array;
-    }
-
-    /**
-     * Get the text replaced placeholders as a BaseComponent.
-     *
-     * @param pairs the pairs of placeholder and its value
-     * @return the text replaced placeholders with BaseComponent
-     */
-    @SafeVarargs
-    public final BaseComponent produceWithBaseComponents(Pair<String, Object>... pairs) {
-        var componentsList = produceWithBaseComponentsAsList(pairs);
-        var base = componentsList.get(0);
-        for (int i = 1; i < componentsList.size(); i++) {
-            base.addExtra("\n");
-            base.addExtra(componentsList.get(i));
-        }
-        return base;
-    }
-
 
     /**
      * Get the text replaced placeholders, joint to one string.
@@ -348,16 +316,5 @@ public final class Text {
         public Text deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             return new Text(jsonElement);
         }
-    }
-
-    private BaseComponent createBaseComponent(String text) {
-        var components = TextComponent.fromLegacyText(text);
-        var result = components[0];
-        if(components.length > 1) {
-            for(int i = 1; i < components.length; i++) {
-                result.addExtra(components[i]);
-            }
-        }
-        return result;
     }
 }
