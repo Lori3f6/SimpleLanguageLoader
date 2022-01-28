@@ -7,6 +7,8 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
@@ -238,7 +240,7 @@ public final class Text {
         List<String> result = new ArrayList<>(textColored.size());
         coloredAsList().forEach(text -> {
             for (var pair : pairs) {
-                result.add(text.replace("{" + pair.key() + "}", pair.value().toString()));
+                result.add(text.replace("{" + pair.key() + "}", preProcess(pair.value()).toString()));
             }
         });
         return result;
@@ -261,7 +263,7 @@ public final class Text {
                 if (pair.value() instanceof BaseComponent) {
                     componentLines.getExtra().set(index, (BaseComponent) pair.value());
                 } else {
-                    var component = new TextComponent(TextComponent.fromLegacyText(pair.value().toString()));
+                    var component = new TextComponent(TextComponent.fromLegacyText(preProcess(pair.value()).toString()));
                     component.copyFormatting(componentLines.getExtra().get(index));
                     componentLines.getExtra().set(index, component);
                 }
@@ -280,7 +282,7 @@ public final class Text {
     public final String produce(Pair<String, Object>... pairs) {
         var result = colored();
         for (var pair : pairs) {
-            result = result.replace("{" + pair.key() + "}", pair.value().toString());
+            result = result.replace("{" + pair.key() + "}", preProcess(pair.value()).toString());
         }
         return result;
     }
@@ -316,5 +318,13 @@ public final class Text {
         public Text deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             return new Text(jsonElement);
         }
+    }
+
+    private Object preProcess(Object object) {
+        if(object instanceof Double || object instanceof Float) {
+            // format as 2 decimal places BigDecimal
+            return BigDecimal.valueOf(((Number) object).doubleValue()).setScale(2, RoundingMode.DOWN);
+        } else
+            return object;
     }
 }
