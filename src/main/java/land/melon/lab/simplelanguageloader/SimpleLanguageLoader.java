@@ -60,7 +60,7 @@ import java.lang.reflect.Type;
  *  </pre>
  * <p>That's all the basic uses of SimpleLanguageLoader, You could see the other classes and methods in javadoc for more details.</p>
  * <p>By the way, SimpleLanguageLoader is a <a href="https://github.com/google/gson">Gson</a>(<a href="https://www.javadoc.io/doc/com.google.code.gson/gson">Gson Javadoc</a>) based object serializer/deserializer, so the operations and annotations used in a gson data class are also usable in SimpleLanguageLoader. You could customize the gson instance inside SimpleLanguageLoader instance by creating new SimpleLanguageLoader instance via <code>new SimpleLanguageLoader(GsonBuilder)</code> method.</p>
- * <p><strong>See Also</strong>: placeholder, format code and color code are in {@link Text} class.</p>
+ * <p>@see Text</p>
  */
 public class SimpleLanguageLoader {
     private final Gson gson;
