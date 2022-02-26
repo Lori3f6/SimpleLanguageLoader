@@ -3,6 +3,7 @@ package land.melon.lab.simplelanguageloader.components;
 import com.google.gson.*;
 import land.melon.lab.simplelanguageloader.utils.ColorConverter;
 import land.melon.lab.simplelanguageloader.utils.Pair;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 
@@ -145,15 +146,17 @@ public final class Text {
         var textsInLine = placeholderPattern.split(colored);
         var placeholdersInLine = placeholderPattern.matcher(colored).results().map(MatchResult::group).toArray(String[]::new);
         if (placeholdersInLine.length > 0) {
-            for (int i = 0; i < placeholdersInLine.length; i++) {
-                var text = TextComponent.fromLegacyText(textsInLine[i]);
-                if (!textsInLine[i].startsWith("§")) {
-                    text[0].copyFormatting(componentLines.getExtra().get(componentLines.getExtra().size() - 1));
-                }
+            for (int i = 0; i < textsInLine.length; i++) {
+                var textDefaultColor = componentLines.getExtra() == null ? ChatColor.WHITE : componentLines.getExtra().get(componentLines.getExtra().size() - 1).getColor();
+
+                var text = TextComponent.fromLegacyText(textsInLine[i],textDefaultColor);
                 Arrays.stream(text).forEach(componentLines::addExtra);
 
+                if(i >= placeholdersInLine.length)  // textsInLine.length may be 1 larger than placeholdersInLine.length
+                    break;
+
                 var placeholder = new TextComponent(placeholdersInLine[i]);
-                placeholder.copyFormatting(componentLines.getExtra().get(componentLines.getExtra().size() - 1));
+                placeholder.setColor(textDefaultColor);
                 componentLines.addExtra(placeholder);
 
                 var placeholderString = placeholdersInLine[i].substring(1, placeholdersInLine[i].length() - 1);
