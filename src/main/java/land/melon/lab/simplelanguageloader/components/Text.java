@@ -99,6 +99,7 @@ public final class Text {
 
     /**
      * Create Text from {@link JsonElement}
+     *
      * @param jsonElement jsonElement used to deserialize to Text
      */
     private Text(JsonElement jsonElement) {
@@ -149,10 +150,10 @@ public final class Text {
             for (int i = 0; i < textsInLine.length; i++) {
                 var textDefaultColor = componentLines.getExtra() == null ? ChatColor.WHITE : componentLines.getExtra().get(componentLines.getExtra().size() - 1).getColor();
 
-                var text = TextComponent.fromLegacyText(textsInLine[i],textDefaultColor);
+                var text = TextComponent.fromLegacyText(textsInLine[i], textDefaultColor);
                 Arrays.stream(text).forEach(componentLines::addExtra);
 
-                if(i >= placeholdersInLine.length)  // textsInLine.length may be 1 larger than placeholdersInLine.length
+                if (i >= placeholdersInLine.length)  // textsInLine.length may be 1 larger than placeholdersInLine.length
                     break;
 
                 var placeholder = new TextComponent(placeholdersInLine[i]);
@@ -263,8 +264,10 @@ public final class Text {
             }
             var placeholder = placeHolderMap.get(pair.key());
             for (var index : placeholder) {
-                if (pair.value() instanceof BaseComponent) {
-                    componentLines.getExtra().set(index, (BaseComponent) pair.value());
+                if (pair.value() instanceof BaseComponent component) {
+                    componentLines.getExtra().set(index, component);
+                } else if (pair.value() instanceof BaseComponent[] components) {
+                    componentLines.getExtra().set(index, new TextComponent(components));
                 } else {
                     var component = new TextComponent(TextComponent.fromLegacyText(preProcess(pair.value()).toString()));
                     component.copyFormatting(componentLines.getExtra().get(index));
@@ -301,6 +304,14 @@ public final class Text {
         return colored();
     }
 
+    private Object preProcess(Object object) {
+        if (object instanceof Double || object instanceof Float) {
+            // format as 2 decimal places BigDecimal
+            return BigDecimal.valueOf(((Number) object).doubleValue()).setScale(2, RoundingMode.DOWN);
+        } else
+            return object;
+    }
+
     private static class TextSerializer implements JsonSerializer<Text>, JsonDeserializer<Text> {
         @Override
         public JsonElement serialize(Text textInstance, Type type, JsonSerializationContext jsonSerializationContext) {
@@ -321,13 +332,5 @@ public final class Text {
         public Text deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             return new Text(jsonElement);
         }
-    }
-
-    private Object preProcess(Object object) {
-        if(object instanceof Double || object instanceof Float) {
-            // format as 2 decimal places BigDecimal
-            return BigDecimal.valueOf(((Number) object).doubleValue()).setScale(2, RoundingMode.DOWN);
-        } else
-            return object;
     }
 }
