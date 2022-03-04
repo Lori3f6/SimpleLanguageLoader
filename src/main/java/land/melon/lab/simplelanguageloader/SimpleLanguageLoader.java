@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.function.Supplier;
 
 /**
  * Functional main class of SimpleLanguageLoader package.
@@ -79,7 +80,21 @@ public class SimpleLanguageLoader {
      * @param gsonBuilder customized GsonBuilder to create Gson instance
      */
     public SimpleLanguageLoader(GsonBuilder gsonBuilder) {
-        this.gson = gsonBuilder.registerTypeAdapter(Text.class, Text.gsonSerializer).create();
+        this(gsonBuilder, false);
+    }
+
+    /**
+     * Create a new SimpleLanguageLoader instance with specified Gson instance.
+     *
+     * @param gsonBuilder          customized GsonBuilder to create Gson instance
+     * @param applyDefaultSettings apply <code>PrettyPrinting</code>, <code>Lenient</code> and <code>DisableHtmlEscaping</code>.
+     */
+    public SimpleLanguageLoader(GsonBuilder gsonBuilder, boolean applyDefaultSettings) {
+        var builder = gsonBuilder.registerTypeAdapter(Text.class, Text.gsonSerializer);
+        if (applyDefaultSettings) {
+            builder.setPrettyPrinting().setLenient().disableHtmlEscaping();
+        }
+        this.gson = builder.create();
     }
 
 
@@ -167,6 +182,55 @@ public class SimpleLanguageLoader {
         var writer = new FileWriter(file);
         writer.write(jsonString);
         writer.close();
+    }
+
+    /**
+     * <p>attempt to load an object from file</p>
+     * <p>create new file and return value constructed by supplier if the file doesn't exist or file is empty.</p>
+     *
+     * @param file     file to be read
+     * @param type     type of the object
+     * @param <T>      type of the object
+     * @param supplier default constructor
+     * @return deserialized object
+     * @throws IOException if the file is corrupted or cannot be read
+     */
+    public <T> T loadOrConstruct(File file, Type type, Supplier<T> supplier) throws IOException {
+        T attempt = loadFromFile(file, type);
+        return attempt != null ? attempt : supplier.get();
+    }
+
+    /**
+     * <p>attempt to load an object from file</p>
+     * <p>create new file and return value constructed by supplier if the file doesn't exist or file is empty.</p>
+     *
+     * @param file     file to be read
+     * @param type     type of the object
+     * @param <T>      type of the object
+     * @param supplier default constructor
+     * @return deserialized object
+     * @throws IOException if the file is corrupted or cannot be read
+     */
+    public <T> T loadOrConstruct(File file, Class<T> type, Supplier<T> supplier) throws IOException {
+        return loadOrConstruct(file, (Type) type, supplier);
+    }
+
+    /**
+     * <p>attempt to load an object from file</p>
+     * <p>create new file and return value constructed by supplier</p>
+     * <p>write the serialized object to file immediately while loading</p>
+     *
+     * @param file     file to be read
+     * @param type     type of the object
+     * @param <T>      type of the object
+     * @param supplier default constructor
+     * @return deserialized object
+     * @throws IOException if the file is corrupted or cannot be read
+     */
+    public <T> T loadOrInitialize(File file, Class<T> type, Supplier<T> supplier) throws IOException {
+        var loaded = loadOrConstruct(file, type, supplier);
+        saveToFile(file, loaded);
+        return loaded;
     }
 
     @SuppressWarnings("unused")

@@ -6,14 +6,15 @@
 
     <groupId>land.melon.lab</groupId>
     <artifactId>SimpleLanguageLoader</artifactId>
-    <version>1.7.0</version>
+    <version>1.7.1</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <minecraft.version>1.18.2-R0.1-SNAPSHOT</minecraft.version>
+        <minecraft.version>1.18.2</minecraft.version>
+        <spigot.apiVersion>R0.1-SNAPSHOT</spigot.apiVersion>
     </properties>
 
         <repositories>
@@ -40,7 +41,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>${minecraft.version}</version>
+            <version>${minecraft.version}-${spigot.apiVersion}</version>
             <classifier>remapped-mojang</classifier>
             <scope>provided</scope>
         </dependency>
@@ -86,9 +87,9 @@
                         </goals>
                         <id>remap-obf</id>
                         <configuration>
-                            <srgIn>org.spigotmc:minecraft-server:${minecraft.version}:txt:maps-mojang</srgIn>
+                            <srgIn>org.spigotmc:minecraft-server:${minecraft.version}-${spigot.apiVersion}:txt:maps-mojang</srgIn>
                             <reverse>true</reverse>
-                            <remappedDependencies>org.spigotmc:spigot:${minecraft.version}:jar:remapped-mojang</remappedDependencies>
+                            <remappedDependencies>org.spigotmc:spigot:${minecraft.version}-${spigot.apiVersion}:jar:remapped-mojang</remappedDependencies>
                             <remappedArtifactAttached>true</remappedArtifactAttached>
                             <remappedClassifierName>remapped-obf</remappedClassifierName>
                         </configuration>
@@ -101,8 +102,8 @@
                         <id>remap-spigot</id>
                         <configuration>
                             <inputFile>${project.build.directory}/${project.artifactId}-${project.version}-remapped-obf.jar</inputFile>
-                            <srgIn>org.spigotmc:minecraft-server:${minecraft.version}:csrg:maps-spigot</srgIn>
-                            <remappedDependencies>org.spigotmc:spigot:${minecraft.version}:jar:remapped-obf</remappedDependencies>
+                            <srgIn>org.spigotmc:minecraft-server:${minecraft.version}-${spigot.apiVersion}:csrg:maps-spigot</srgIn>
+                            <remappedDependencies>org.spigotmc:spigot:${minecraft.version}-${spigot.apiVersion}:jar:remapped-obf</remappedDependencies>
                         </configuration>
                     </execution>
                 </executions>
