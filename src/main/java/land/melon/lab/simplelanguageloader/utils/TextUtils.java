@@ -13,7 +13,7 @@ public class TextUtils {
     public static int countWord(String text, String colorPrefix) {
         int count = 0;
         var convenientColorCodePattern = Pattern.compile(colorPrefix + "#[0-9A-Fa-f]{6}");
-        var legacyColorCodePattern = Pattern.compile(colorPrefix + "[0-9A-Fa-fXx]");
+        var legacyColorCodePattern = Pattern.compile(colorPrefix + "[0-9A-Fa-fLlMmNnOoRrXxKk]");
         for (String noConvenient : convenientColorCodePattern.split(text)) {
             for (String noColor : legacyColorCodePattern.split(noConvenient)) {
                 count += noColor.length();
