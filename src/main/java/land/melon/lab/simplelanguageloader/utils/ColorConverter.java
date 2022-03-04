@@ -11,7 +11,7 @@ public final class ColorConverter {
     /**
      * hex color pattern looks like <code>&amp;#RRGGBB</code>
      */
-    static final Pattern hexColorPattern = Pattern.compile("[&][#][0-9A-Fa-f]{6}");
+    public static final Pattern hexColorPattern = Pattern.compile("&#[0-9A-Fa-f]{6}");
 
     private ColorConverter() {
     }
