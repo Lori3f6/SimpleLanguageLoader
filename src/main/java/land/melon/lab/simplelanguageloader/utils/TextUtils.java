@@ -10,7 +10,7 @@ public class TextUtils {
      * @param colorPrefix the color prefix
      * @return number of words
      */
-    public static int countWord(String text, String colorPrefix) {
+    public static int countWord(String text, char colorPrefix) {
         int count = 0;
         var convenientColorCodePattern = Pattern.compile(colorPrefix + "#[0-9A-Fa-f]{6}");
         var legacyColorCodePattern = Pattern.compile(colorPrefix + "[0-9A-Fa-fLlMmNnOoRrXxKk]");

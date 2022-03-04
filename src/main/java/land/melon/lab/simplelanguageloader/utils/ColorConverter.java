@@ -24,8 +24,8 @@ public final class ColorConverter {
      */
     public static String convertConvenientColorCode(String text) {
         var textParts = hexColorPattern.split(text);
-        if(textParts.length == 0)
-            textParts = new String[]{"",""};
+        if (textParts.length == 0)
+            textParts = new String[]{"", ""};
         var colorCodes = hexColorPattern.matcher(text).results().map(MatchResult::group).toArray(String[]::new);
         var textBuilder = new StringBuilder(textParts[0]);
         for (int i = 0; i < colorCodes.length; i++) {
@@ -47,7 +47,7 @@ public final class ColorConverter {
         return colorCodeBuilder.toString();
     }
 
-    public static String convertToLegacyColorCode(String text,String colorPrefix) {
-        return text.replace(colorPrefix,"§").replace(colorPrefix + colorPrefix,"§");
+    public static String convertToLegacyColorCode(String text, char colorPrefix) {
+        return text.replace(colorPrefix, '§').replace("" + colorPrefix + colorPrefix, "§");
     }
 }
