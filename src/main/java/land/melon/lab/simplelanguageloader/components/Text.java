@@ -147,14 +147,11 @@ public final class Text {
         var textsInLine = placeholderPattern.split(colored);
         var placeholdersInLine = placeholderPattern.matcher(colored).results().map(MatchResult::group).toArray(String[]::new);
         if (placeholdersInLine.length > 0) {
-            for (int i = 0; i < textsInLine.length; i++) {
+            for (int i = 0; i < placeholdersInLine.length; i++) {
                 var textDefaultColor = componentLines.getExtra() == null ? ChatColor.WHITE : componentLines.getExtra().get(componentLines.getExtra().size() - 1).getColor();
 
                 var text = TextComponent.fromLegacyText(textsInLine[i], textDefaultColor);
                 Arrays.stream(text).forEach(componentLines::addExtra);
-
-                if (i >= placeholdersInLine.length)  // textsInLine.length may be 1 larger than placeholdersInLine.length
-                    break;
 
                 var placeholder = new TextComponent(placeholdersInLine[i]);
                 placeholder.setColor(textDefaultColor);

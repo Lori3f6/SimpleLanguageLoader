@@ -50,4 +50,8 @@ public final class ColorConverter {
     public static String convertToLegacyColorCode(String text, char colorPrefix) {
         return text.replace(colorPrefix, '§').replace("" + colorPrefix + colorPrefix, "§");
     }
+
+    public static String translateToLegacyColorText(String text,char colorPrefix){
+        return convertToLegacyColorCode(convertToTraditionalColorCode(convertConvenientColorCode(text)),colorPrefix);
+    }
 }
