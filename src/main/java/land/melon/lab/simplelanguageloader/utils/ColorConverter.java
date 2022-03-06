@@ -52,6 +52,6 @@ public final class ColorConverter {
     }
 
     public static String translateToLegacyColorText(String text,char colorPrefix){
-        return convertToLegacyColorCode(convertToTraditionalColorCode(convertConvenientColorCode(text)),colorPrefix);
+        return convertToLegacyColorCode(convertConvenientColorCode(text),colorPrefix);
     }
 }
