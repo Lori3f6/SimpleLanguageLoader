@@ -145,6 +145,7 @@ public final class Text {
             componentLines.addExtra(new TextComponent("\n"));
         }
         var textsInLine = placeholderPattern.split(colored);
+        if (textsInLine.length == 0) textsInLine = new String[]{"", ""};
         var placeholdersInLine = placeholderPattern.matcher(colored).results().map(MatchResult::group).toArray(String[]::new);
         if (placeholdersInLine.length > 0) {
             for (int i = 0; i < placeholdersInLine.length; i++) {
