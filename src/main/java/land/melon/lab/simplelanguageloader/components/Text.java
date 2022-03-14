@@ -5,13 +5,16 @@ import land.melon.lab.simplelanguageloader.utils.ColorConverter;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
-import java.util.regex.MatchResult;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -78,12 +81,23 @@ public final class Text {
      * The serializer/deserializer for gson to process class Text.
      */
     public static final TextSerializer gsonSerializer = new TextSerializer();
-    private static final Pattern placeholderPattern = Pattern.compile("\\{\\w*}");
+    private static final Pattern placeholderPattern = Pattern.compile("(\\{)(.*?)(})");
+    private static final TextComponent lineWrapper;
     private final List<String> textOriginal;
     private final List<String> textExpanded;
     private final List<String> textColored;
-    private final BaseComponent componentLines = new TextComponent("");
-    private final Map<String, List<Integer>> placeHolderMap = new HashMap<>();
+
+    static {
+        lineWrapper = new TextComponent("\n");
+        lineWrapper.setColor(ChatColor.WHITE);
+        lineWrapper.setBold(false);
+        lineWrapper.setItalic(false);
+        lineWrapper.setUnderlined(false);
+        lineWrapper.setStrikethrough(false);
+        lineWrapper.setObfuscated(false);
+        lineWrapper.setClickEvent(null);
+        lineWrapper.setHoverEvent(null);
+    }
 
     /**
      * Create a new Text component with the given text.
@@ -138,43 +152,8 @@ public final class Text {
         textOriginal.add(originalString);
         var expanded = ColorConverter.convertConvenientColorCode(originalString);
         textExpanded.add(expanded);
-        var colored = expanded.replace('&', '§').replace("§§", "&");
+        var colored = ColorConverter.convertToLegacyColorCode(expanded, '&');
         textColored.add(colored);
-
-        if (componentLines.getExtra() != null) {
-            componentLines.addExtra(new TextComponent("\n"));
-        }
-        var textsInLine = placeholderPattern.split(colored);
-        if (textsInLine.length == 0) textsInLine = new String[]{"", ""};
-        var placeholdersInLine = placeholderPattern.matcher(colored).results().map(MatchResult::group).toArray(String[]::new);
-        if (placeholdersInLine.length > 0) {
-            for (int i = 0; i < placeholdersInLine.length; i++) {
-                var textDefaultColor = componentLines.getExtra() == null ? ChatColor.WHITE : componentLines.getExtra().get(componentLines.getExtra().size() - 1).getColor();
-
-                var text = TextComponent.fromLegacyText(textsInLine[i], textDefaultColor);
-                Arrays.stream(text).forEach(componentLines::addExtra);
-
-                var placeholder = new TextComponent(placeholdersInLine[i]);
-                placeholder.setColor(textDefaultColor);
-                componentLines.addExtra(placeholder);
-
-                var placeholderString = placeholdersInLine[i].substring(1, placeholdersInLine[i].length() - 1);
-                if (!placeHolderMap.containsKey(placeholderString)) {
-                    placeHolderMap.put(placeholderString, new ArrayList<>());
-                }
-                var indexList = placeHolderMap.get(placeholderString);
-                indexList.add(componentLines.getExtra().size() - 1);
-            }
-            if (textsInLine.length > placeholdersInLine.length) {
-                var componentPart = TextComponent.fromLegacyText(textsInLine[placeholdersInLine.length]);
-                if (!textsInLine[placeholdersInLine.length].startsWith("§")) {
-                    componentPart[0].copyFormatting(componentLines.getExtra().get(componentLines.getExtra().size() - 1));
-                }
-                Arrays.stream(componentPart).forEach(componentLines::addExtra);
-            }
-        } else {
-            Arrays.stream(TextComponent.fromLegacyText(colored)).forEach(componentLines::addExtra);
-        }
     }
 
     /**
@@ -255,25 +234,46 @@ public final class Text {
      * @return the texts replaced placeholders
      */
     @SafeVarargs
-    public final BaseComponent produceWithBaseComponent(Pair<String, Object>... pairs) {
-        for (var pair : pairs) {
-            if (!placeHolderMap.containsKey(pair.key())) {
-                continue;
+    public final BaseComponent[] produceWithBaseComponent(Pair<String, Object>... pairs) {
+        var ordinaryList = new ArrayList<Pair<String, Object>>();
+        var baseComponentMap = new HashMap<String, Object>();
+        var rawText = coloredAsList();
+        Arrays.stream(pairs).forEach(t -> {
+            if (t.value() instanceof BaseComponent || t.value() instanceof BaseComponent[]) {
+                baseComponentMap.put(t.key(), t.value());
+            } else {
+                ordinaryList.add(t);
             }
-            var placeholder = placeHolderMap.get(pair.key());
-            for (var index : placeholder) {
-                if (pair.value() instanceof BaseComponent component) {
-                    componentLines.getExtra().set(index, component);
-                } else if (pair.value() instanceof BaseComponent[] components) {
-                    componentLines.getExtra().set(index, new TextComponent(components));
+        });
+        var textBuilder = new ComponentBuilder();
+        var firstLine = true;
+        for (var line : rawText) {
+            if (firstLine) {
+                firstLine = false;
+            } else {
+                textBuilder.append(lineWrapper);
+            }
+            for (var ordinaryRecord : ordinaryList) {
+                line = line.replace("{" + ordinaryRecord.key() + "}", preProcess(ordinaryRecord.value()).toString());
+            }
+            var textParts = placeholderPattern.split(line, -1);
+            var placeHolderMatcher = placeholderPattern.matcher(line);
+            var placeHolders = new ArrayList<String>();
+            while (placeHolderMatcher.find()) {
+                placeHolders.add(placeHolderMatcher.group(2));
+            }
+            for (int i = 0; i < placeHolders.size(); i++) {
+                textBuilder.append(TextComponent.fromLegacyText(textParts[i]));
+                var placeholderValue = baseComponentMap.getOrDefault(placeHolders.get(i), new TextComponent("{" + placeHolders.get(i) + "}"));
+                if (placeholderValue instanceof BaseComponent) {
+                    textBuilder.append((BaseComponent) placeholderValue);
                 } else {
-                    var component = new TextComponent(TextComponent.fromLegacyText(preProcess(pair.value()).toString()));
-                    component.copyFormatting(componentLines.getExtra().get(index));
-                    componentLines.getExtra().set(index, component);
+                    textBuilder.append((BaseComponent[]) placeholderValue);
                 }
             }
+            textBuilder.append(TextComponent.fromLegacyText(textParts[textParts.length - 1]));
         }
-        return componentLines.duplicate();
+        return textBuilder.create();
     }
 
     /**
