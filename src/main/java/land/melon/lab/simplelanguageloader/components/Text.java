@@ -251,7 +251,7 @@ public final class Text {
             if (firstLine) {
                 firstLine = false;
             } else {
-                textBuilder.append(lineWrapper);
+                textBuilder.append(lineWrapper.duplicate());
             }
             for (var ordinaryRecord : ordinaryList) {
                 line = line.replace("{" + ordinaryRecord.key() + "}", preProcess(ordinaryRecord.value()).toString());
