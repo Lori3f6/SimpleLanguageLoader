@@ -1,6 +1,9 @@
 package land.melon.lab.simplelanguageloader.nms;
 
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.ItemTag;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Item;
 import net.minecraft.nbt.CompoundTag;
 import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
@@ -17,6 +20,12 @@ public class ItemUtils {
             clone.setItemMeta(bookMeta);
         }
         return new Item(clone.getType().name().toLowerCase(), clone.getAmount(), ItemTag.ofNbt(itemStackToJson(clone)));
+    }
+
+    public static BaseComponent itemTextWithHover(ItemStack itemStack){
+        var itemComponent = LocaleUtils.getTranslatableItemComponent(itemStack);
+        itemComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new BaseComponent[]{new TextComponent(ItemUtils.itemStackToJson(itemStack))}));
+        return itemComponent;
     }
 
     public static String itemStackToJson(ItemStack itemStack) {
