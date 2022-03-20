@@ -21,7 +21,7 @@ public class LocaleUtils {
 
     public static BaseComponent getTranslatableItemComponent(ItemStack itemStack) {
         if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName())
-            return new TextComponent(itemStack.getItemMeta().getDisplayName());
+            return new TextComponent(TextComponent.fromLegacyText(itemStack.getItemMeta().getDisplayName()));
         if (itemStack.getItemMeta() instanceof SkullMeta && ((SkullMeta) itemStack.getItemMeta()).hasOwner()) {
             String key = getUnlocalizedName(itemStack.getType()) + ".named";
             return new TranslatableComponent(key, ((SkullMeta) itemStack.getItemMeta()).getOwningPlayer().getName());
