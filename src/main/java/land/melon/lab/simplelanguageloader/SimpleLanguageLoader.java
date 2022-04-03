@@ -222,12 +222,29 @@ public class SimpleLanguageLoader {
      *
      * @param file     file to be read
      * @param type     type of the object
-     * @param <T>      type of the object
      * @param supplier default constructor
      * @return deserialized object
      * @throws IOException if the file is corrupted or cannot be read
      */
     public <T> T loadOrInitialize(File file, Class<T> type, Supplier<T> supplier) throws IOException {
+        var loaded = loadOrConstruct(file, type, supplier);
+        saveToFile(file, loaded);
+        return loaded;
+    }
+
+
+    /**
+     * <p>attempt to load an object from file</p>
+     * <p>create new file and return value constructed by supplier</p>
+     * <p>write the serialized object to file immediately while loading</p>
+     *
+     * @param file     file to be read
+     * @param type     type of the object
+     * @param supplier default constructor
+     * @return deserialized object
+     * @throws IOException if the file is corrupted or cannot be read
+     */
+    public <T> T loadOrInitialize(File file, Type type, Supplier<T> supplier) throws IOException {
         var loaded = loadOrConstruct(file, type, supplier);
         saveToFile(file, loaded);
         return loaded;
