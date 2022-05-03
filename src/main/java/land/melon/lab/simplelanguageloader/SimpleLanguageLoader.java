@@ -4,11 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import land.melon.lab.simplelanguageloader.components.Text;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 
 /**
@@ -167,7 +165,8 @@ public class SimpleLanguageLoader {
      */
     public <T> T loadFromFile(File file, Type type) throws IOException {
         IGNORE_RESULT(file.createNewFile());
-        return gson.fromJson(new FileReader(file), type);
+        var inputStream = new FileInputStream(file);
+        return gson.fromJson(new InputStreamReader(inputStream, StandardCharsets.UTF_8), type);
     }
 
     /**
@@ -179,9 +178,9 @@ public class SimpleLanguageLoader {
      */
     public void saveToFile(File file, Object object) throws IOException {
         var jsonString = this.getJsonString(object);
-        var writer = new FileWriter(file);
-        writer.write(jsonString);
-        writer.close();
+        var outputStream = new FileOutputStream(file);
+        outputStream.write(jsonString.getBytes(StandardCharsets.UTF_8));
+        outputStream.close();
     }
 
     /**
