@@ -83,9 +83,6 @@ public final class Text {
     public static final TextSerializer gsonSerializer = new TextSerializer();
     private static final Pattern placeholderPattern = Pattern.compile("(\\{)(.*?)(})");
     private static final TextComponent lineWrapper;
-    private final List<String> textOriginal;
-    private final List<String> textExpanded;
-    private final List<String> textColored;
 
     static {
         lineWrapper = new TextComponent("\n");
@@ -98,6 +95,10 @@ public final class Text {
         lineWrapper.setClickEvent(null);
         lineWrapper.setHoverEvent(null);
     }
+
+    private final List<String> textOriginal;
+    private final List<String> textExpanded;
+    private final List<String> textColored;
 
     /**
      * Create a new Text component with the given text.

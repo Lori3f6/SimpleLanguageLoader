@@ -22,7 +22,7 @@ public class ItemUtils {
         return new Item(clone.getType().name().toLowerCase(), clone.getAmount(), ItemTag.ofNbt(itemStackToJson(clone)));
     }
 
-    public static BaseComponent itemTextWithHover(ItemStack itemStack){
+    public static BaseComponent itemTextWithHover(ItemStack itemStack) {
         var itemComponent = LocaleUtils.getTranslatableItemComponent(itemStack);
         itemComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new BaseComponent[]{new TextComponent(ItemUtils.itemStackToJson(itemStack))}));
         return itemComponent;

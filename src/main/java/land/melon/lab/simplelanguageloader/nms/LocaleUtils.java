@@ -10,10 +10,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
 /**
- * from: cat.nyaa.nyaacore.utils
- * https://github.com/NyaaCat/NyaaCore/blob/1.18/src/main/java/cat/nyaa/nyaacore/utils/LocaleUtils.java
+ * From: <a href="https://github.com/NyaaCat/NyaaCore/blob/1.18/src/main/java/cat/nyaa/nyaacore/utils/LocaleUtils.java">cat.nyaa.nyaacore.utils.LocaleUtils.java</a>
  */
-public class LocaleUtils {
+public class
+LocaleUtils {
     public static String getUnlocalizedName(Material material) {
         if (material == null) throw new IllegalArgumentException();
         return namespaceKeyToTranslationKey(material.isBlock() ? "block" : "item", material.getKey());
