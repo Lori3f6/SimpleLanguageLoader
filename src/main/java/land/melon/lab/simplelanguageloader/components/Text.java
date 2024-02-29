@@ -3,19 +3,20 @@ package land.melon.lab.simplelanguageloader.components;
 import com.google.gson.*;
 import land.melon.lab.simplelanguageloader.utils.ColorConverter;
 import land.melon.lab.simplelanguageloader.utils.Pair;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static land.melon.lab.simplelanguageloader.utils.TextUtils.extractPlaceholders;
+import static land.melon.lab.simplelanguageloader.utils.TextUtils.splitMessage;
 
 /**
  * Language component that represents a text, which help you to create single or multi line customizable text with basic and RGB color code, format code, custom placeholders and Spigot BaseComponents support.
@@ -82,19 +83,6 @@ public final class Text {
      */
     public static final TextSerializer gsonSerializer = new TextSerializer();
     private static final Pattern placeholderPattern = Pattern.compile("(\\{)(.*?)(})");
-    private static final TextComponent lineWrapper;
-
-    static {
-        lineWrapper = new TextComponent("\n");
-        lineWrapper.setColor(ChatColor.WHITE);
-        lineWrapper.setBold(false);
-        lineWrapper.setItalic(false);
-        lineWrapper.setUnderlined(false);
-        lineWrapper.setStrikethrough(false);
-        lineWrapper.setObfuscated(false);
-        lineWrapper.setClickEvent(null);
-        lineWrapper.setHoverEvent(null);
-    }
 
     private final List<String> textOriginal;
     private final List<String> textExpanded;
@@ -235,61 +223,51 @@ public final class Text {
      * @return the texts replaced placeholders
      */
     @SafeVarargs
-    public final BaseComponent[] produceWithBaseComponent(Pair<String, Object>... pairs) {
-        var ordinaryList = new ArrayList<Pair<String, Object>>();
-        var baseComponentMap = new HashMap<String, Object>();
-        var rawText = coloredAsList();
-        Arrays.stream(pairs).forEach(t -> {
-            if (t.value() instanceof BaseComponent || t.value() instanceof BaseComponent[]) {
-                baseComponentMap.put(t.key(), t.value());
-            } else {
-                ordinaryList.add(t);
-            }
-        });
-        var textBuilder = new ComponentBuilder();
-        var firstLine = true;
-        for (var line : rawText) {
-            if (firstLine) {
-                firstLine = false;
-            } else {
-                textBuilder.append(lineWrapper.duplicate());
-            }
-            for (var ordinaryRecord : ordinaryList) {
-                line = line.replace("{" + ordinaryRecord.key() + "}", preProcess(ordinaryRecord.value()).toString());
-            }
-            var textParts = placeholderPattern.split(line, -1);
-            var placeHolderMatcher = placeholderPattern.matcher(line);
-            var placeHolders = new ArrayList<String>();
-            while (placeHolderMatcher.find()) {
-                placeHolders.add(placeHolderMatcher.group(2));
-            }
-            for (int i = 0; i < placeHolders.size(); i++) {
-                textBuilder.append(TextComponent.fromLegacyText(textParts[i]));
-                var placeholderValue = baseComponentMap.getOrDefault(placeHolders.get(i), new TextComponent("{" + placeHolders.get(i) + "}"));
-                if (placeholderValue instanceof BaseComponent) {
-                    textBuilder.append((BaseComponent) placeholderValue);
-                } else {
-                    textBuilder.append((BaseComponent[]) placeholderValue);
-                }
-            }
-            textBuilder.append(TextComponent.fromLegacyText(textParts[textParts.length - 1]));
-        }
-        return textBuilder.create();
-    }
-
-    /**
-     * Get the text replaced placeholders, joint to one string.
-     *
-     * @param pairs the pairs of placeholder and its value
-     * @return the texts replaced placeholders
-     */
-    @SafeVarargs
     public final String produce(Pair<String, Object>... pairs) {
         var result = colored();
         for (var pair : pairs) {
             result = result.replace("{" + pair.key() + "}", preProcess(pair.value()).toString());
         }
         return result;
+    }
+
+    @SafeVarargs
+    public final Component produceAsComponent(Pair<String, Object>... pairs) {
+        var collected =
+                Arrays.stream(pairs).collect(Collectors.partitioningBy(t -> t.value() instanceof Component));
+
+        var componentPlaceholderMap =
+                collected.get(true).stream().collect(Collectors.toMap(Pair::key, t -> (Component) t.value()));
+        var primitivePlaceholderMap =
+                collected.get(false).stream().collect(Collectors.toMap(Pair::key, Pair::value));
+        var coloredLines =
+                coloredAsList();
+
+        var resultBuilder = Component.text();
+
+        for (int lineIndex = 0; lineIndex < coloredLines.size(); lineIndex++) {
+            var mutableLineString = coloredLines.get(lineIndex);
+            for (var primitiveKey : primitivePlaceholderMap.keySet()) {
+                mutableLineString = mutableLineString.replace("{" + primitiveKey + "}", preProcess(primitivePlaceholderMap.get(primitiveKey)).toString());
+            }
+            var placeholders = extractPlaceholders(mutableLineString);
+            var split = splitMessage(mutableLineString);
+            var lineComponent = Component.text();
+
+            for (var i = 0; i < split.length; i++) {
+                lineComponent.append(LegacyComponentSerializer.legacyAmpersand().deserialize(split[i]));
+                if (i < placeholders.size()) {
+                    lineComponent.append(componentPlaceholderMap.getOrDefault(placeholders.get(i), Component.text("{" + placeholders.get(i) + "}").asComponent()));
+                }
+            }
+
+            resultBuilder.append(lineComponent);
+            if (lineIndex != coloredLines.size() - 1) {
+                resultBuilder.append(Component.newline());
+            }
+        }
+
+        return resultBuilder.asComponent();
     }
 
     /**
@@ -314,7 +292,7 @@ public final class Text {
     private static class TextSerializer implements JsonSerializer<Text>, JsonDeserializer<Text> {
         @Override
         public JsonElement serialize(Text textInstance, Type type, JsonSerializationContext jsonSerializationContext) {
-            if (textInstance.textOriginal.size() == 0) {
+            if (textInstance.textOriginal.isEmpty()) {
                 return new JsonPrimitive("");
             } else if (textInstance.textOriginal.size() == 1) {
                 return new JsonPrimitive(textInstance.textOriginal.get(0));

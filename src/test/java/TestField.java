@@ -1,6 +1,7 @@
 import com.google.gson.GsonBuilder;
 import land.melon.lab.simplelanguageloader.components.Text;
 import land.melon.lab.simplelanguageloader.utils.Pair;
+import land.melon.lab.simplelanguageloader.utils.TextUtils;
 
 import javax.print.attribute.standard.JobMediaSheets;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.regex.Pattern;
 
 public class TestField {
     public static void main(String[] args) {
+        var testString = "{greeting}&7Hi my &6dear {player}, &#66ccff What a {color} world! {emoji}";
         var gson = new GsonBuilder().registerTypeAdapter(Text.class, Text.gsonSerializer).setPrettyPrinting().disableHtmlEscaping().setLenient().create();
         var text = new Text(
                 "&#66ccff Hello {color} world!",
@@ -44,5 +46,9 @@ public class TestField {
         var spl = placeholderPattern.split(str1);
         var spl3 = placeholderPattern.split(str3);
         var spl3placeholders = placeholderPattern.matcher(str3).results().map(m -> m.group(0)).toArray(String[]::new);
+
+
+        System.out.println(TextUtils.extractPlaceholders(testString));
+        System.out.println(Arrays.toString(TextUtils.splitMessage(testString)));
     }
 }

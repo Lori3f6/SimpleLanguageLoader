@@ -1,11 +1,8 @@
-package land.melon.lab.simplelanguageloader.nms;
+package land.melon.lab.simplelanguageloader.utils;
 
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.TranslatableComponent;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
@@ -19,15 +16,14 @@ LocaleUtils {
         return namespaceKeyToTranslationKey(material.isBlock() ? "block" : "item", material.getKey());
     }
 
-    public static BaseComponent getTranslatableItemComponent(ItemStack itemStack) {
+    public static Component getTranslatableItemComponent(ItemStack itemStack) {
         if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName())
-            return new TextComponent(TextComponent.fromLegacyText(itemStack.getItemMeta().getDisplayName()));
+            return itemStack.getItemMeta().displayName();
         if (itemStack.getItemMeta() instanceof SkullMeta && ((SkullMeta) itemStack.getItemMeta()).hasOwner()) {
             String key = getUnlocalizedName(itemStack.getType()) + ".named";
-            return new TranslatableComponent(key, ((SkullMeta) itemStack.getItemMeta()).getOwningPlayer().getName());
+            return Component.translatable(key, ((SkullMeta) itemStack.getItemMeta()).getOwningPlayer().getName());
         }
-        net.minecraft.world.item.ItemStack nmsItemStack = CraftItemStack.asNMSCopy(itemStack);
-        return new TranslatableComponent(nmsItemStack.getItem().getDescriptionId(nmsItemStack));
+        return Component.translatable(itemStack.translationKey());
     }
 
     public static String namespaceKeyToTranslationKey(String category, NamespacedKey namespacedKey) {

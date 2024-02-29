@@ -6,24 +6,21 @@
 
     <groupId>land.melon.lab</groupId>
     <artifactId>SimpleLanguageLoader</artifactId>
-    <version>1.12.0-mc${minecraft.version}</version>
+    <version>1.13.0</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <minecraft.version>1.20.1</minecraft.version>
-        <spigot.apiVersion>R0.1-SNAPSHOT</spigot.apiVersion>
     </properties>
 
-<!--        <repositories>-->
-<!--            &lt;!&ndash; This adds the Spigot Maven repository to the build &ndash;&gt;-->
-<!--            <repository>-->
-<!--                <id>spigot-repo</id>-->
-<!--                <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>-->
-<!--            </repository>-->
-<!--        </repositories>-->
+        <repositories>
+            <repository>
+                <id>papermc</id>
+                <url>https://repo.papermc.io/repository/maven-public/</url>
+            </repository>
+        </repositories>
 
     <dependencies>
         <dependency>
@@ -33,10 +30,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
-            <version>${minecraft.version}-${spigot.apiVersion}</version>
-            <classifier>remapped-mojang</classifier>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.20.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -66,39 +62,6 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>net.md-5</groupId>
-                <artifactId>specialsource-maven-plugin</artifactId>
-                <version>1.2.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>remap</goal>
-                        </goals>
-                        <id>remap-obf</id>
-                        <configuration>
-                            <srgIn>org.spigotmc:minecraft-server:${minecraft.version}-${spigot.apiVersion}:txt:maps-mojang</srgIn>
-                            <reverse>true</reverse>
-                            <remappedDependencies>org.spigotmc:spigot:${minecraft.version}-${spigot.apiVersion}:jar:remapped-mojang</remappedDependencies>
-                            <remappedArtifactAttached>true</remappedArtifactAttached>
-                            <remappedClassifierName>remapped-obf</remappedClassifierName>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>remap</goal>
-                        </goals>
-                        <id>remap-spigot</id>
-                        <configuration>
-                            <inputFile>${project.build.directory}/${project.artifactId}-${project.version}-remapped-obf.jar</inputFile>
-                            <srgIn>org.spigotmc:minecraft-server:${minecraft.version}-${spigot.apiVersion}:csrg:maps-spigot</srgIn>
-                            <remappedDependencies>org.spigotmc:spigot:${minecraft.version}-${spigot.apiVersion}:jar:remapped-obf</remappedDependencies>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

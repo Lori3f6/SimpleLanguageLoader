@@ -1,5 +1,8 @@
 package land.melon.lab.simplelanguageloader.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TextUtils {
@@ -20,5 +23,19 @@ public class TextUtils {
             }
         }
         return count;
+    }
+
+    public static List<String> extractPlaceholders(String message) {
+        List<String> placeholders = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\\{(.*?)}");
+        Matcher matcher = pattern.matcher(message);
+        while (matcher.find()) {
+            placeholders.add(matcher.group(1));
+        }
+        return placeholders;
+    }
+
+    public static String[] splitMessage(String message) {
+        return message.split("\\{.*?}");
     }
 }
