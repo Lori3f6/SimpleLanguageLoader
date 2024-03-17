@@ -255,7 +255,7 @@ public final class Text {
             var lineComponent = Component.text();
 
             for (var i = 0; i < split.length; i++) {
-                lineComponent.append(LegacyComponentSerializer.legacyAmpersand().deserialize(split[i]));
+                lineComponent.append(LegacyComponentSerializer.legacySection().deserialize(split[i]));
                 if (i < placeholders.size()) {
                     lineComponent.append(componentPlaceholderMap.getOrDefault(placeholders.get(i), Component.text("{" + placeholders.get(i) + "}").asComponent()));
                 }
