@@ -6,7 +6,7 @@
 #
 
 name: Package Auto Publish
-run-name: Package Publish \#${{github.run_number}}
+run-name: 'Package Publish #${{github.run_number}}'
 on:
   release:
     types: [published]

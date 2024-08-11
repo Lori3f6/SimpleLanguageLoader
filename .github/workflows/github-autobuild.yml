@@ -9,7 +9,7 @@
 #  @v4 seems like the latest version matches v4.x.x for a job
 # 
 name: AutoBuilder
-run-name: Auto build on ${{github.ref_type}} ${{github.ref_name}} \#${{github.run_number}}
+run-name: 'Auto build on ${{github.ref_type}} ${{github.ref_name}} #${{github.run_number}}'
 on: [push]
 jobs:
   Build:
@@ -27,5 +27,5 @@ jobs:
       - name: upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SimpleLanguageLoader-autobuild${{github.run_number}}.zip
+          name: SimpleLanguageLoader-autobuild-${{github.run_number}}-git-${{github.sha}}.zip
           path: ./target/*.jar
