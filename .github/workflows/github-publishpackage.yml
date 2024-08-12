@@ -4,7 +4,6 @@
 #  Events that trigger workflows:
 #    https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#release
 #
-
 name: Package Auto Publish
 run-name: 'Package Publish #${{github.run_number}}'
 on:
@@ -20,6 +19,7 @@ jobs:
         with:
           distribution: 'oracle'
           java-version: '21'
+          server-id: 'github-package'
       - name: checkout repo
         uses: actions/checkout@v4
       - name: deploy project with maven
