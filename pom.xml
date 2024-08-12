@@ -5,8 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>land.melon.lab</groupId>
-    <artifactId>SimpleLanguageLoader</artifactId>
-    <version>1.13.3</version>
+    <artifactId>simplelanguageloader</artifactId>
+    <version>1.13.4</version>
+    <!-- change artifact id to lowercase due to github package has path validation -->
+    <!-- ref: https://github.com/orgs/community/discussions/23474 -->
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -71,8 +73,7 @@
     <distributionManagement>
         <repository>
             <id>github-package</id>
-            <name>Github Package</name>
-            <url>https://maven.pkg.github.com/Lori3f6/SimpleLanguageLoader</url>
+            <url>https://maven.pkg.github.com/lori3f6/simplelanguageloader</url>
         </repository>
     </distributionManagement>
 </project>
