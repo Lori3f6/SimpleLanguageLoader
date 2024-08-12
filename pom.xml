@@ -73,7 +73,8 @@
     <distributionManagement>
         <repository>
             <id>github-package</id>
-            <url>https://maven.pkg.github.com/lori3f6/simplelanguageloader</url>
+            <url>${env.GITHUB_MAVEN_URL}</url>
+            <!-- refer to .github/workflows/github-publishpackage.yml -->
         </repository>
     </distributionManagement>
 </project>
