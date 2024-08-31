@@ -224,7 +224,7 @@ public final class Text {
      */
     @SafeVarargs
     public final String produce(Pair<String, Object>... pairs) {
-        var result = colored();
+        var result = produce();
         for (var pair : pairs) {
             result = result.replace("{" + pair.key() + "}", preProcess(pair.value()).toString());
         }
@@ -237,6 +237,10 @@ public final class Text {
         return produce(
                 Arrays.stream(pairs).map(Pair::of).toArray(Pair[]::new)
         );
+    }
+
+    public String produce() {
+        return colored();
     }
 
     @SafeVarargs
@@ -262,11 +266,16 @@ public final class Text {
             var split = splitMessage(mutableLineString);
             var lineComponent = Component.text();
 
-            for (var i = 0; i < split.length; i++) {
-                lineComponent.append(LegacyComponentSerializer.legacySection().deserialize(split[i]));
-                if (i < placeholders.size()) {
-                    lineComponent.append(componentPlaceholderMap.getOrDefault(placeholders.get(i), Component.text("{" + placeholders.get(i) + "}").asComponent()));
+            for (String s : split) {
+                lineComponent.append(LegacyComponentSerializer.legacySection().deserialize(s));
+                if (!placeholders.isEmpty()) {
+                    lineComponent.append(componentPlaceholderMap.getOrDefault(placeholders.peek(), Component.text("{" + placeholders.peek() + "}").asComponent()));
+                    placeholders.poll();
                 }
+            }
+            while (!placeholders.isEmpty()) {
+                lineComponent.append(componentPlaceholderMap.getOrDefault(placeholders.peek(), Component.text("{" + placeholders.peek() + "}").asComponent()));
+                placeholders.poll();
             }
 
             resultBuilder.append(lineComponent);
