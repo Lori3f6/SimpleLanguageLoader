@@ -232,6 +232,14 @@ public final class Text {
     }
 
     @SafeVarargs
+    @SuppressWarnings("unchecked")
+    public final String produce(kotlin.Pair<String, Object>... pairs) {
+        return produce(
+                Arrays.stream(pairs).map(Pair::of).toArray(Pair[]::new)
+        );
+    }
+
+    @SafeVarargs
     public final Component produceAsComponent(Pair<String, Object>... pairs) {
         var collected =
                 Arrays.stream(pairs).collect(Collectors.partitioningBy(t -> t.value() instanceof Component));
@@ -268,6 +276,14 @@ public final class Text {
         }
 
         return resultBuilder.asComponent();
+    }
+
+    @SafeVarargs
+    @SuppressWarnings("unchecked")
+    public final Component produceAsComponent(kotlin.Pair<String, Object>... pairs) {
+        return produceAsComponent(
+                Arrays.stream(pairs).map(Pair::of).toArray(Pair[]::new)
+        );
     }
 
     /**
