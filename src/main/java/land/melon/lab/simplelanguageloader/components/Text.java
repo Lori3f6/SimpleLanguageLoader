@@ -5,6 +5,7 @@ import land.melon.lab.simplelanguageloader.utils.ColorConverter;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -133,6 +134,7 @@ public final class Text {
      * @param texts the text to be used
      * @return new Text instance
      */
+    @NotNull
     public static Text of(String... texts) {
         return new Text(texts);
     }
@@ -205,6 +207,7 @@ public final class Text {
      * @param pairs the pairs of placeholder and its value
      * @return the texts replaced placeholders
      */
+    @NotNull
     @SafeVarargs
     public final List<String> produceAsList(Pair<String, Object>... pairs) {
         List<String> result = new ArrayList<>(textColored.size());
@@ -222,6 +225,7 @@ public final class Text {
      * @param pairs the pairs of placeholder and its value
      * @return the texts replaced placeholders
      */
+    @NotNull
     @SafeVarargs
     public final String produce(Pair<String, Object>... pairs) {
         var result = produce();
@@ -231,6 +235,7 @@ public final class Text {
         return result;
     }
 
+    @NotNull
     @SafeVarargs
     @SuppressWarnings("unchecked")
     public final String produce(kotlin.Pair<String, Object>... pairs) {
@@ -243,6 +248,7 @@ public final class Text {
         return colored();
     }
 
+    @NotNull
     @SafeVarargs
     public final Component produceAsComponent(Pair<String, Object>... pairs) {
         var collected =
@@ -287,6 +293,7 @@ public final class Text {
         return resultBuilder.asComponent();
     }
 
+    @NotNull
     @SafeVarargs
     @SuppressWarnings("unchecked")
     public final Component produceAsComponent(kotlin.Pair<String, Object>... pairs) {
