@@ -244,8 +244,14 @@ public final class Text {
         );
     }
 
+    @NotNull
     public String produce() {
         return colored();
+    }
+
+    @NotNull
+    public Component produceAsComponent(){
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(colored());
     }
 
     @NotNull

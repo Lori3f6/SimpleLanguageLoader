@@ -6,7 +6,7 @@
 
     <groupId>land.melon.lab</groupId>
     <artifactId>simplelanguageloader</artifactId>
-    <version>1.13.9</version>
+    <version>1.13.10</version>
     <!-- change artifact id to lowercase due to github package has path validation -->
     <!-- ref: https://github.com/orgs/community/discussions/23474 -->
 
