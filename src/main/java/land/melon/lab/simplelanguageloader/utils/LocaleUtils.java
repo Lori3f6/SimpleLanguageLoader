@@ -19,11 +19,18 @@ public class LocaleUtils {
     }
 
     public static Component getTranslatableItemComponent(ItemStack itemStack) {
-        if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName())
-            return Component.text().style(Style.style(TextDecoration.ITALIC)).append(itemStack.getItemMeta().displayName()).asComponent();
-        if (itemStack.getItemMeta() instanceof SkullMeta && ((SkullMeta) itemStack.getItemMeta()).hasOwner()) {
-            String key = getUnlocalizedName(itemStack.getType()) + ".named";
-            return Component.translatable(key, (String) null, Component.text(((SkullMeta) itemStack.getItemMeta()).getOwningPlayer().getName()));
+        var meta = itemStack.getItemMeta();
+        if (meta != null) {
+            if (meta.hasDisplayName()) {
+                return Component.text().style(Style.style(TextDecoration.ITALIC)).append(meta.displayName()).asComponent();
+            }
+            if (meta.hasItemName()) {
+                return Component.text().style(Style.style(TextDecoration.ITALIC)).append(meta.itemName()).asComponent();
+            }
+            if (meta instanceof SkullMeta && ((SkullMeta) meta).hasOwner()) {
+                String key = getUnlocalizedName(itemStack.getType()) + ".named";
+                return Component.translatable(key, (String) null, Component.text(((SkullMeta) itemStack.getItemMeta()).getOwningPlayer().getName()));
+            }
         }
         return Component.translatable(itemStack.translationKey());
     }
