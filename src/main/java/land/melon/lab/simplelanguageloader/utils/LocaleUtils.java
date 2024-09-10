@@ -25,7 +25,7 @@ public class LocaleUtils {
                 return Component.text().style(Style.style(TextDecoration.ITALIC)).append(meta.displayName()).asComponent();
             }
             if (meta.hasItemName()) {
-                return Component.text().style(Style.style(TextDecoration.ITALIC)).append(meta.itemName()).asComponent();
+                return Component.text().append(meta.itemName()).asComponent();
             }
             if (meta instanceof SkullMeta && ((SkullMeta) meta).hasOwner()) {
                 String key = getUnlocalizedName(itemStack.getType()) + ".named";
