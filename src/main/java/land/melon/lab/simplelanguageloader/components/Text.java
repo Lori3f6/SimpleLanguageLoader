@@ -251,7 +251,7 @@ public final class Text {
 
     @NotNull
     public Component produceAsComponent(){
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(colored());
+        return LegacyComponentSerializer.legacySection().deserialize(colored());
     }
 
     @NotNull
