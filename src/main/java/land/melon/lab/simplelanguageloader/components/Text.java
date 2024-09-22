@@ -236,15 +236,6 @@ public final class Text {
     }
 
     @NotNull
-    @SafeVarargs
-    @SuppressWarnings("unchecked")
-    public final String produce(kotlin.Pair<String, Object>... pairs) {
-        return produce(
-                Arrays.stream(pairs).map(Pair::of).toArray(Pair[]::new)
-        );
-    }
-
-    @NotNull
     public String produce() {
         return colored();
     }
@@ -297,15 +288,6 @@ public final class Text {
         }
 
         return resultBuilder.asComponent();
-    }
-
-    @NotNull
-    @SafeVarargs
-    @SuppressWarnings("unchecked")
-    public final Component produceAsComponent(kotlin.Pair<String, Object>... pairs) {
-        return produceAsComponent(
-                Arrays.stream(pairs).map(Pair::of).toArray(Pair[]::new)
-        );
     }
 
     /**

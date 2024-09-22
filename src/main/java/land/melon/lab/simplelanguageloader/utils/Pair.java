@@ -23,10 +23,6 @@ public record Pair<K, V>(K key, V value) {
         return new Pair<>(key, value);
     }
 
-    public static <K, V> Pair<K, V> of(kotlin.Pair<K, V> pair) {
-        return new Pair<>(pair.getFirst(), pair.getSecond());
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
